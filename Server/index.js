@@ -19,43 +19,23 @@ app.use(cors());
 app.use(morgan("dev"));
 
 io.on("connection", (socket) => {
-  console.log(`USER CONNECTED: ${socket.id}`);
-  //console.log(`User ${server.id} connected`);
-  socket.on("message", (message) => {
+  //console.log(`USER CONNECTED: ${socket.id}`);
+
+  socket.on("message", (message, room) => {
     const messageAndUser = { message, from: socket.id };
-    io.sockets.emit("message", messageAndUser);
+    if (room === "") {
+      io.sockets.emit("message", messageAndUser);
+    } else {
+      //socket.to(room).emit("message", messageAndUser); //Every Socket but this one
+      io.sockets.to(room).emit("message", messageAndUser); //Every socket
+    }
+  });
+
+  socket.on("join-room", (room, cb) => {
+    socket.join(room);
+    cb(`Joined room ${room}`);
   });
 });
 
 server.listen(configuration.PORT);
 console.log(`Listening on port ${configuration.PORT}`);
-
-/* const express = require("express");
-const morgan = require("morgan");
-const SocketIO = require("socket.io");
-const configuration = require("./config.js");
-const cors = require("cors");
-
-const app = express();
-
-app.set("port", configuration.PORT || 3001);
-
-app.use(morgan("dev"));
-app.use(cors());
-
-const server = app.listen(app.get("port"), () => {
-  console.log(`Server listening on port ${app.get("port")}`);
-});
-
-console.log(configuration.SERVER);
-
-const io = SocketIO(server, {
-  cors: {
-    origin: "*",
-  },
-});
-
-io.on("connection", (server) => {
-  console.log("CONNECTED");
-  console.log(`User ${server.id} connected`);
-}); */
